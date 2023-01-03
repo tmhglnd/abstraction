@@ -32,5 +32,4 @@ Some useful commands to monitor processes:
 
 # Acknowledgements
 
-This installation was commissioned by Museum CODA Apeldoorn.
-
+This installation was commissioned by [Museum CODA Apeldoorn](https://www.coda-apeldoorn.nl/).
