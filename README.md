@@ -40,6 +40,8 @@ The software in this repository is licensed under the [**GNU GPLv3** license](ht
 
 The creative output of this work is licensed under the [**CC BY-SA 4.0** license](https://creativecommons.org/licenses/by-sa/4.0/legalcode)
 
+This is a [**Free Culture License**](https://creativecommons.org/share-your-work/public-domain/freeworks)!
+
 You are free to:
 
 - `Share` — copy and redistribute the material in any medium or format
