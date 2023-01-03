@@ -12,7 +12,7 @@ const port = 3000;
 const server = app.listen(port, () => {
 	console.log(`Server is running at http://localhost:${port}`);
 	// start the browser with the site
-	// open(`http://localhost:${port}`, { app: { name: 'google chrome', arguments: ['--incognito'] } });
+	// open(`http://localhost:${port}`, { app: { name: 'google chrome', arguments: ['--incognito'] } });	
 });
 
 // connect via socket io
@@ -31,11 +31,11 @@ const oscPort = 9999;
 // setup a server to receive OSC messages from controllers
 let osc = new Server(oscPort, '0.0.0.0', () => {
 	console.log(`OSC server listening at port ${oscPort}`);
-});
-
-// receive messages and forward to the site
-osc.on('message', (msg) => {
-	console.log('received:', ...msg);
+	
+	// receive messages and forward to the browser
+	osc.on('message', (msg) => {
+		io.emit('message', ...msg);
+	});
 });
 
 // send all parameters from Max (for testing purposes)

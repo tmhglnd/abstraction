@@ -101,8 +101,8 @@
 			let socket = io();
 			socket.on('message', (...msg) => {
 				// if the controllers are connected via touch merge the visuals
-				if (msg[0].match(/merge/)){
-					isMerged = msg[1];
+				if (msg[0].match(/switch/)){
+					isMerged = !msg[1];
 					if (isMerged) merge();
 					else split();
 				}
@@ -114,9 +114,9 @@
 					}
 					else if (msg[0].match(/function/)){
 						c1.function = Math.floor(msg[1]/1024*4);
+						// redraw the visuals with new code to output 0
+						visual(c1, 'o0');
 					}
-					// redraw the visuals with new code to output 0
-					visual(c1, 'o0');
 				}
 				else if (msg[0].match(/control2/)){
 					// if the message comes from controller 2
@@ -125,9 +125,9 @@
 					}
 					else if (msg[0].match(/function/)){
 						c2.function = Math.floor(msg[1]/1024*4);
+						// redraw the visuals with new code to output 1
+						visual(c2, 'o1');
 					}
-					// redraw the visuals with new code to output 1
-					visual(c2, 'o1');
 				}
 			});
 
@@ -151,10 +151,15 @@
 			}
 			
 			// a list of all possible visual snippets
+			// let codeMap = {
+			// 	'noise' : (o, v) => `noise(${v*20})\n.colorama(2)\n.out(${o})`,
+			// 	'osc' : (o, v) => `osc(4, 0.2, ${v*10})\n.out(${o})`,
+			// 	'shape' : (o, v) => `shape(${v*10})\n.repeat(4, 4)\n.out(${o})`
+			// }
 			let codeMap = {
-				'noise' : (o, v) => `noise(${v*20})\n.colorama(2)\n.out(${o})`,
-				'osc' : (o, v) => `osc(4, 0.2, ${v*10})\n.out(${o})`,
-				'shape' : (o, v) => `shape(${v*10})\n.repeat(4, 4)\n.out(${o})`
+				'noise' : (o, v) => `noise(() => ${v}*20)\n.colorama(2).\nout(${o})`,
+				'osc' : (o, v) => `osc(4, 0.2, () => ${v}*10)\n.out(${o})`,
+				'shape' : (o, v) => `shape(() => ${v}*10).\nrepeat(4, 4).\nout(${o})`
 			}
 			
 			// Generate the new visual code
@@ -162,7 +167,7 @@
 				// get the code from the list of options
 				let snippets = Object.keys(codeMap);
 				// apply the parameter value
-				let code = codeMap[snippets[ctl.function]](out, ctl.value);
+				let code = codeMap[snippets[ctl.function]](out, 'ctl.value');
 				// generate the visuals
 				eval(code);
 				// display the code also as text on the screen
