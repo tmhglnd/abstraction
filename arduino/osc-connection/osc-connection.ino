@@ -57,7 +57,8 @@ char *functionNames[] = {"noise", "oscillate", "shape", "modulate"};
 // The startup program running once
 // 
 void setup() {
-  pinMode(7, INPUT_PULLUP);
+  // input for button
+  pinMode(2, INPUT_PULLUP);
 
   // Start ethernet connection for mac address and ip
   Ethernet.begin(mac, ip);
@@ -82,7 +83,7 @@ void loop() {
   // read knobs from analog inputs and emit osc message
   int f = analogRead(A0);
   int v = analogRead(A1);
-  int s = digitalRead(7);
+  int s = digitalRead(2);
 
   // character array for address
   char address[20];
@@ -105,34 +106,50 @@ void loop() {
     _s = s;
   }
 
-  // control LED light brightness (0-255 on PWM output)
-  analogWrite(3, _v/4);
+  // print all the text on the display and change the LED color
+  displayTextAndLED(_f, _v, _s);
+
+  // pause the program to safe cpu load
+  delay(20);
+}
+
+// a function that display text and LED color
+void displayTextAndLED(int f, int v, int s){
+  // control LED RGB light brightness (0-255 on PWM output)
+  analogWrite(3, (1-s)*255); //red
+  analogWrite(5, v/4); //blue
+  analogWrite(6, f/4); //green
 
   // clear the display
   lcd.clear();
   // print the function name on first line
   lcd.setCursor(0, 1);
   lcd.print(" .");
-  lcd.print(functionNames[int(float(_f)/1024*4)]);
+  lcd.print(functionNames[int(float(f)/1024*4)]);
   lcd.print("(");
 
   // generate a char array for number displaying
   char displayNumber[8];
   // convert float value to string with fixed digits
-  dtostrf(float(_v)/1023, 8, 6, displayNumber);
+  dtostrf(float(v)/1022, 8, 6, displayNumber);
 
   // print the variable number from the knob as float 0-1
   lcd.setCursor(0, 2);
   lcd.print("     ");
   lcd.print(displayNumber);
-  lcd.print(" );");
 
-  // pause the program to safe cpu load
-  delay(10);
+  // if the code is combined show text
+  if (!s){    
+    lcd.print(" )");
+    lcd.setCursor(0, 3);
+    lcd.print(" .combine();");
+  } else {
+    lcd.print(" );");
+  }
 }
 
-// A function that sends an osc message to specified IP and Port
-// With variable address and value
+// A function that sends an OSC-message to specified IP and Port
+// with variable address and value
 void oscSend(char addr[], int val){
   // the messages wants an OSC address as first argument
   OSCMessage msg(addr);
