@@ -10,7 +10,7 @@
 		}
 ,
 		"classnamespace" : "box",
-		"rect" : [ 536.0, 96.0, 680.0, 837.0 ],
+		"rect" : [ 698.0, 96.0, 680.0, 837.0 ],
 		"bglocked" : 0,
 		"openinpresentation" : 0,
 		"default_fontsize" : 12.0,
@@ -39,6 +39,30 @@
 		"subpatcher_template" : "",
 		"assistshowspatchername" : 0,
 		"boxes" : [ 			{
+				"box" : 				{
+					"id" : "obj-8",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 1,
+					"outlettype" : [ "int" ],
+					"patching_rect" : [ 510.0, 420.0, 29.5, 22.0 ],
+					"text" : "!- 1"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-4",
+					"maxclass" : "message",
+					"numinlets" : 2,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 41.0, 510.0, 63.0, 22.0 ],
+					"text" : "script stop"
+				}
+
+			}
+, 			{
 				"box" : 				{
 					"id" : "obj-47",
 					"maxclass" : "newobj",
@@ -108,7 +132,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 510.0, 450.0, 139.0, 22.0 ],
-					"text" : "prepend /control1/merge"
+					"text" : "prepend /control1/switch"
 				}
 
 			}
@@ -132,7 +156,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 290.5, 90.0, 150.0, 22.0 ],
-					"text" : "/control1/value 8"
+					"text" : "/control1/value 150"
 				}
 
 			}
@@ -335,7 +359,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "int" ],
 					"parameter_enable" : 0,
-					"patching_rect" : [ 510.0, 386.0, 24.0, 24.0 ]
+					"patching_rect" : [ 510.0, 330.0, 24.0, 24.0 ]
 				}
 
 			}
@@ -413,6 +437,8 @@
 					"saved_object_attributes" : 					{
 						"autostart" : 1,
 						"defer" : 0,
+						"node_bin_path" : "",
+						"npm_bin_path" : "",
 						"watch" : 1
 					}
 ,
@@ -593,6 +619,13 @@
 			}
 , 			{
 				"patchline" : 				{
+					"destination" : [ "obj-1", 0 ],
+					"source" : [ "obj-4", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
 					"destination" : [ "obj-28", 0 ],
 					"source" : [ "obj-40", 0 ]
 				}
@@ -635,7 +668,7 @@
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-38", 0 ],
+					"destination" : [ "obj-8", 0 ],
 					"source" : [ "obj-58", 0 ]
 				}
 
@@ -644,6 +677,13 @@
 				"patchline" : 				{
 					"destination" : [ "obj-61", 0 ],
 					"source" : [ "obj-62", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-38", 0 ],
+					"source" : [ "obj-8", 0 ]
 				}
 
 			}
@@ -672,7 +712,7 @@
 			}
 , 			{
 				"name" : "server.js",
-				"bootpath" : "~/Sync/work/projects/coda-installation",
+				"bootpath" : "~/Sync/work/projects/abstraction",
 				"patcherrelativepath" : ".",
 				"type" : "TEXT",
 				"implicit" : 1
