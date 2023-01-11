@@ -32,7 +32,7 @@ EthernetUDP udp;
 hd44780_I2Cexp lcd;
 
 // the device's ID
-char device[] = "/control1";
+char device[] = "/control2";
 
 // Ethernet shield MAC Address A8:61:0A:AE:A8:6D
 byte mac[] = { 0xA8, 0x61, 0x0A, 0xAE, 0xA8, 0x6D };
@@ -49,7 +49,7 @@ const unsigned int outPort = 9999;
 int _f = 0;
 int _v = 0;
 int _s = HIGH;
-int thresh = 1;
+int thresh = 2;
 
 // function names for display
 char *functionNames[] = {"noise", "oscillate", "shape", "modulate"};
