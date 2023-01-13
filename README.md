@@ -1,6 +1,6 @@
 # Abstraction
 
-An installation demonstrating abstraction through interaction with code
+An installation demonstrating functions, layers of abstraction and live coding through interaction with code.
 
 # Install
 
@@ -66,7 +66,7 @@ Some useful commands to monitor processes:
 
 # Acknowledgements
 
-This installation was commissioned by [Museum CODA Apeldoorn](https://www.coda-apeldoorn.nl/).
+This installation was commissioned by [Museum CODA](https://www.coda-apeldoorn.nl/) in Apeldoorn, The Netherlands.
 
 # License
 
