@@ -8,6 +8,40 @@ Install node modules with:
 
 `npm install`
 
+# Install NodeJS and Node Version Manager on rPi
+
+Install NodeJS `node` 
+
+For nvm (Node Version Manager) use the following installing script:
+
+`curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash`
+
+And run the following scripts:
+
+`export NVM_DIR="$HOME/.nvm"`
+
+This will load nvm:
+
+`[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"`
+
+Check if nvm is installed with:
+
+`command -v nvm`
+
+This should return: `nvm`
+
+Now install the latest stable NodeJS version (or any other version) with:
+
+`node install stable` or `node install vX.Y.Z` (eg. `v18.11.0`)
+
+Now check the used version with:
+
+`node -v`
+
+Or switch version with:
+
+`nvm use X` (eg. `nvm use 18`)
+
 # Run process on boot on rPi
 
 Install Process Manager 2 with npm
