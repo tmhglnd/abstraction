@@ -9,7 +9,7 @@ setResolution(1920, 1080)
 
 H.synth.time = 0;
 
-// worms
+// squiggle
 gradient(1, 0.5)
   .colorama(0.2)
   .mask(shape(100).scale(3, 0.56))

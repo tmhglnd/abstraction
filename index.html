@@ -60,9 +60,15 @@
 	</div>
 
 	<script>
-		const pixels = { width: 160, height: 90 };
+		const pixels = { width: 480, height: 270 };
 
 		window.onload = () => {
+			// aliases for JS functions
+			let sin = Math.sin;
+			let cos = Math.cos;
+			let int = Math.floor;
+			let pi = Math.PI;
+
 			// canvas setup for the hydra visuals
 			let canvas = document.getElementById('hydra-canvas');
 			canvas.width = window.innerWidth;
@@ -81,6 +87,10 @@
 			// set resolution for the visuals
 			setResolution(pixels.width, pixels.height);
 
+			// set tempo and speed
+			// bpm = 120;
+			// speed = 1;
+
 			// initalize solid black screens
 			solid().out(o0);
 			solid().out(o1);
@@ -93,21 +103,29 @@
 			split();
 
 			// storage for incoming parameters from controller
-			let c1 = { value: 0, function: 0 };
-			let c2 = { value: 0, function: 0 };
-			let isMerged = false;
+			let c1 = { value: 0, function: 0, switch: 0 };
+			let c2 = { value: 0, function: 0, switch: 0 };
 
 			// receive messages from the controllers
 			let socket = io();
 			socket.on('message', (...msg) => {
-				// if the controllers are connected via touch merge the visuals
+				// if both controllers' switch is pressed merge the visuals
 				if (msg[0].match(/switch/)){
-					isMerged = !msg[1];
-					if (isMerged) merge();
-					else split();
+					if (msg[0].match(/control1/)){
+						c1.switch = !msg[1];
+					} else if (msg[0].match(/control2/)){
+						c2.switch = !msg[1];
+					}
+
+					if (c1.switch && c2.switch){
+						merge();
+					} else {
+						split();
+					}
 				}
+
 				// route incoming messages and change values for code
-				else if (msg[0].match(/control1/)){
+				if (msg[0].match(/control1/)){
 					// if the message is comes from controller 1
 					if (msg[0].match(/value/)){
 						c1.value = msg[1]/1023;
@@ -128,14 +146,17 @@
 						// redraw the visuals with new code to output 1
 						visual(c2, 'o1');
 					}
+					else if (msg[0].match(/switch/)){
+						c2.switch = !msg[1];
+					}
 				}
 			});
 
 			// Split the visuals into 2 separate screens
 			function split(){
-				src(o0).mask(src(o2)).add(
-					src(o1).mask(src(o2).invert(1))
-				).out(o3);
+				solid().add(src(o0).mask(src(o2)).add(
+					src(o1).scale(-1).mask(src(o2).invert(1))
+				)).out(o3);
 
 				// display the code in the editor
 				displayCode(
@@ -144,22 +165,42 @@
 			
 			// Merge the visuals by modulating together
 			function merge(){
-				src(o0).modulate(src(o1)).out(o3);
+				solid().add(src(o0).modulate(src(o1), 0.5)).out(o3);
 
 				// display the code in the editor
 				displayCode(`src(o0)\n.modulate(src(o1))\n.out(o3)`, 'o2');
 			}
-			
-			// a list of all possible visual snippets
-			// let codeMap = {
-			// 	'noise' : (o, v) => `noise(${v*20})\n.colorama(2)\n.out(${o})`,
-			// 	'osc' : (o, v) => `osc(4, 0.2, ${v*10})\n.out(${o})`,
-			// 	'shape' : (o, v) => `shape(${v*10})\n.repeat(4, 4)\n.out(${o})`
-			// }
+
 			let codeMap = {
-				'noise' : (o, v) => `noise(() => ${v}*20)\n.colorama(2).\nout(${o})`,
-				'osc' : (o, v) => `osc(4, 0.2, () => ${v}*10)\n.out(${o})`,
-				'shape' : (o, v) => `shape(() => ${v}*10).\nrepeat(4, 4).\nout(${o})`
+				'squiggle' : (o, v) => 
+					`gradient(0).hue(0.2)
+					.colorama(() => sin(${v} * pi * 3) * 0.4 + 0.4)
+					.mask(shape(100).scale(() => ${v} * 10 + 2, 0.56))
+					.modulate(noise(2, 0.2), () => cos(${v} * pi * 4) * 2 + 4)
+					.out(${o})`,
+				'mosaic' : (o, v) =>
+					`osc(10,0.1,() => ${v} * 1 + 2)
+					.colorama(() => cos(${v} * π * 3) * 0.2 + 0.3)
+					.kaleid(4)
+					.modulateScrollX(voronoi(16,1,() => sin(${v} * pi * 2)* 0.4))
+					.out(${o})`,
+				'paint' : (o, v) =>
+					`noise(0.6,0.1)
+					.colorama(() => ${v} * 0.1 + 4)
+					.hue(() => ${v} * -1)
+					.modulate(noise(5))
+					.out(${o})`,
+				'glass' : (o, v) =>
+					`osc(3,0.5,5)
+					.modulateKaleid(shape(() => int(${v} * 3)+2,0.2,() => sin(${v} * pi * 8) * 0.5 + 0.5).repeat(3), 6)
+					.colorama(()=> cos(${v} * pi * 2) * -0.15 + 0.3)
+					.out(${o})`,
+				'smear' : (o, v) =>
+					`src(${o})
+					.modulate(noise(1), () => ${v} * 0.01 + 0.003)
+					.scale(() => sin(${v} * pi * 4) * 0.01 + 1).hue(1)
+					.diff(osc(4, -0.3, () => ${v} + 2 * 2).mask(shape(2, 0.01, 0)), 0.01)
+					.out(${o})`
 			}
 			
 			// Generate the new visual code
@@ -168,8 +209,14 @@
 				let snippets = Object.keys(codeMap);
 				// apply the parameter value
 				let code = codeMap[snippets[ctl.function]](out, 'ctl.value');
+				// let code = codeMap[snippets[ctl.function]];
+
+				// code(out, ctl, ctl.value);
+				console.log(code);
 				// generate the visuals
+				// code();
 				eval(code);
+				// code();
 				// display the code also as text on the screen
 				displayCode(code, out);
 			}
