@@ -14,6 +14,8 @@ const server = app.listen(port, () => {
 	console.log(`Server is running at http://localhost:${port}`);
 	
 	if (rpi()){
+		// hide mouse when not moving
+		shell.exec(`unclutter -idle 1`);
 		// start the browser with the site if it runs on rpi
 		shell.exec(`chromium-browser --start-fullscreen --start-maximized http://localhost:${port}`);
 	}
@@ -25,6 +27,19 @@ const io = socket(server);
 // post socket id to max console
 io.sockets.on('connection', function(socket){
 	console.log(`Connected ${socket.id}`);
+
+	// initialize all visuals
+	init = {
+		'/control1/function' : Math.random()*1024,
+		'/control1/value' : Math.random()*1024,
+		'/control1/switch' : 1,
+		'/control2/function' : Math.random()*1024,
+		'/control2/value' : Math.random()*1024,
+		'/control2/switch' : 1
+	}
+	for (i in init){
+		io.emit('message', i, init[i]);
+	}
 });
 
 // require dependency for receiving controller values
