@@ -80,6 +80,20 @@ If you like to show the browser in fullscreen you can use `F11` or you can start
 
 `chromium-browser --start-fullscreen http://localhost:3000`
 
+To avoid letting the screen go to black when not using the rPi install xscreensaver with:
+
+`sudo apt-get install xscreensaver`
+
+Open the application and disable the screensaver.
+
+To hide the mouse when not moving the curser install unclutter:
+
+`sudo apt-get install unclutter`
+
+Then run the following command to hide the cursor after 1 second
+
+`unclutter -idle 1`
+
 # Acknowledgements
 
 This installation was commissioned by [Museum CODA](https://www.coda-apeldoorn.nl/) in Apeldoorn, The Netherlands.
