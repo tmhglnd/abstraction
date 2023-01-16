@@ -16,9 +16,11 @@ Then navigate in the browser to:
 
 `http://localhost:3000`
 
-## Install NodeJS and Node Version Manager on rPi
+# Make this into an installation running on a Raspberry Pi 4
 
 It is possible to run this installation on a raspberry pi4 (3 is also possible but on a very low visual resolution, like 160x90 pixels).
+
+## Install NodeJS and Node Version Manager on rPi
 
 First install NodeJS `node`
 
@@ -52,6 +54,8 @@ Or switch version with:
 
 `nvm use X` (eg. `nvm use 18`)
 
+Then download/clone the repository and run `npm install` and `npm start`
+
 ## Run process on boot on rPi
 
 If you want the installation to startup directly with the boot of the rPi install Process Manager 2 with npm
@@ -74,7 +78,7 @@ Some useful commands to monitor processes:
 
 `pm2 list`, `pm2 monit`, `pm2 logs [process name]`
 
-## Run browser in fullscreen rPi
+## Run browser in fullscreen on rPi
 
 If you like to show the browser in fullscreen you can use `F11` or you can start the browser in fullscreen mode via the terminal with:
 
