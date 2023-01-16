@@ -16,8 +16,8 @@ const server = app.listen(port, () => {
 	if (rpi()){
 		// hide mouse when not moving
 		shell.exec(`unclutter -idle 1`);
-		// start the browser with the site if it runs on rpi
-		shell.exec(`chromium-browser --start-fullscreen --start-maximized http://localhost:${port}`);
+		// open browser in fullscreen incognito when on rpi
+		shell.exec(`chromium-browser --start-fullscreen --start-maximized --incognito http://localhost:${port}`);
 	}
 });
 

@@ -58,7 +58,7 @@
 	</div>
 
 	<script>
-		const pixels = { width: 640, height: 360 };
+		const pixels = { width: 640, height: 240 };
 
 		window.onload = () => {
 			// aliases for JS functions
@@ -79,7 +79,7 @@
 			// create a new hydra instance
 			var hydra = new Hydra({ 
 				canvas: canvas,
-				precision: 'mediump',
+				precision: 'lowp',
 				detectAudio: false
 			});
 
