@@ -4,13 +4,23 @@ An installation demonstrating functions, layers of abstraction and live coding t
 
 # Install
 
-Install node modules with:
+This installation runs in the browser via a localhost NodeJS server. First install node modules:
 
 `npm install`
 
-# Install NodeJS and Node Version Manager on rPi
+Then start the server:
 
-Install NodeJS `node` 
+`npm start`
+
+Then navigate in the browser to:
+
+`http://localhost:3000`
+
+## Install NodeJS and Node Version Manager on rPi
+
+It is possible to run this installation on a raspberry pi4 (3 is also possible but on a very low visual resolution, like 160x90 pixels).
+
+First install NodeJS `node`
 
 For nvm (Node Version Manager) use the following installing script:
 
@@ -42,9 +52,9 @@ Or switch version with:
 
 `nvm use X` (eg. `nvm use 18`)
 
-# Run process on boot on rPi
+## Run process on boot on rPi
 
-Install Process Manager 2 with npm
+If you want the installation to startup directly with the boot of the rPi install Process Manager 2 with npm
 
 `npm install pm2 -g`
 
@@ -63,6 +73,12 @@ Copy/paste/execute the command printed in the terminal and afterwards save the s
 Some useful commands to monitor processes:
 
 `pm2 list`, `pm2 monit`, `pm2 logs [process name]`
+
+## Run browser in fullscreen rPi
+
+If you like to show the browser in fullscreen you can use `F11` or you can start the browser in fullscreen mode via the terminal with:
+
+`chromium-browser --start-fullscreen http://localhost:3000`
 
 # Acknowledgements
 

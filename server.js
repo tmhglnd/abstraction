@@ -2,7 +2,8 @@
 const express = require('express');
 const max = require('max-api-or-not');
 const socket = require('socket.io');
-const open = require('open');
+const shell = require('child_process');
+const rpi = require('detect-rpi');
 
 // init the app server and port listen
 const app = express();
@@ -11,8 +12,11 @@ app.use(express.static('.'));
 const port = 3000;
 const server = app.listen(port, () => {
 	console.log(`Server is running at http://localhost:${port}`);
-	// start the browser with the site
-	// open(`http://localhost:${port}`, { app: { name: 'google chrome', arguments: ['--incognito'] } });	
+	
+	if (rpi()){
+		// start the browser with the site if it runs on rpi
+		shell.exec(`chromium-browser --start-fullscreen --start-maximized http://localhost:${port}`);
+	}
 });
 
 // connect via socket io

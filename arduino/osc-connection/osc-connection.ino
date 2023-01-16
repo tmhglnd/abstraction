@@ -113,7 +113,7 @@ void loop() {
   }
 
   // pause the program to safe cpu load
-  delay(50);
+  delay(33);
 }
 
 // a function that display text and LED color
