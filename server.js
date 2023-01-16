@@ -30,12 +30,12 @@ io.sockets.on('connection', function(socket){
 
 	// initialize all visuals
 	init = {
-		'/control1/function' : Math.random()*1024,
-		'/control1/value' : Math.random()*1024,
+		'/control1/function' : 1024/5,
+		'/control2/function' : 1024/5*3,
 		'/control1/switch' : 1,
-		'/control2/function' : Math.random()*1024,
+		'/control2/switch' : 1,
+		'/control1/value' : Math.random()*1024,
 		'/control2/value' : Math.random()*1024,
-		'/control2/switch' : 1
 	}
 	for (i in init){
 		io.emit('message', i, init[i]);

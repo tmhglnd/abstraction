@@ -58,7 +58,7 @@
 	</div>
 
 	<script>
-		const pixels = { width: 640, height: 240 };
+		const pixels = { width: 480, height: 270 };
 
 		window.onload = () => {
 			// aliases for JS functions
@@ -79,8 +79,8 @@
 			// create a new hydra instance
 			var hydra = new Hydra({ 
 				canvas: canvas,
-				precision: 'lowp',
-				detectAudio: false
+				precision: 'mediump',
+				detectAudio: false,
 			});
 
 			// set resolution for the visuals
@@ -153,7 +153,7 @@
 			// Split the visuals into 2 separate screens
 			function split(){
 				solid().add(src(o0).mask(src(o2)).add(
-					src(o1).mask(src(o2).invert(1))
+					src(o1).scale(-1).mask(src(o2).invert(1))
 				)).out(o3);
 
 				// display the code in the editor
@@ -168,7 +168,7 @@
 				let random = int(rand() * options.length);
 				
 				let modulation = options[random];
-				let modAmount = rand()*5+0.1;
+				let modAmount = rand()*4+0.1;
 				let mergeCode = `src(o0).\n${modulation}(src(o1), ${modAmount.toFixed(3)})`;
 
 				// display the code in the editor
@@ -182,34 +182,34 @@
 			// All the different visual code snippets for the installation
 			let codeSnippets = {
 				'squiggle' : (o, v) => 
-					`gradient(0).hue(0.2)
-					.colorama(() => sin(${v} * pi * 3) * 0.4 + 0.4)
-					.mask(shape(100).scale(() => ${v} * 10 + 2, 0.56))
-					.modulate(noise(2, 0.2),() => cos(${v} * pi * 4) * 2 + 4)
+					`gradient(0).pixelate(6,6)
+					.hue(() => 1-(${v} * 0.5 + 0.4))
+					.mask(shape(8).scale( () => ${v} * 10 + 3, 0.56))
+					.rotate(() => ${v} * pi, 1)
+					.modulate(noise(1.5, 0.2), () => cos(${v} * pi * 4) * 4 + 5.5)
 					.out(${o})`,
 				'mosaic' : (o, v) =>
-					`osc(10,0.1,() => ${v} * 1 + 2)
-					.colorama(() => cos(${v} * pi * 3) * 0.2 + 0.3)
-					.kaleid(4)
-					.modulateScrollX(voronoi(16,1,() => sin(${v} * pi * 2)* 0.4))
-					.out(${o})`,
-				'paint' : (o, v) =>
-					`noise(0.6,0.1)
-					.colorama(() => ${v} * 0.1 + 4)
-					.hue(() => ${v} * -1)
-					.modulate(noise(5))
-					.out(${o})`,
-				'glass' : (o, v) =>
-					`osc(3,0.5,5)
-					.modulateKaleid(shape(() => int(${v} * 3) + 2, 0.2,() => sin(${v} * pi * 8) * 0.5 + 0.5).repeat(3), 6)
-					.colorama(() => cos(${v} * pi * 2) * -0.15 + 0.3)
+					`osc(4,0.1,() => ${v} * 2 + 1.7).kaleid(3)
+					.colorama(() => cos(${v} * pi * 6) * 0.1 + 0.1)  
+					.modulatePixelate(voronoi(8, 0.5, 0), () => sin(${v} * pi * 4) * 10 + 11)
 					.out(${o})`,
 				'smear' : (o, v) =>
 					`src(${o})
-					.modulate(noise(1), () => ${v} * 0.01 + 0.003)
-					.scale(() => sin(${v} * pi * 4) * 0.01 + 1).hue(1)
-					.diff(osc(4, -0.3, () => ${v} + 2 * 2).mask(shape(2, 0.01, 0)), 0.01)
-					.out(${o})`
+					.modulate(src(${o}).pixelate(6,6), 0.005)
+					.scale(() => sin(${v} * pi * 4) * 0.02 + 1).hue(0.001)
+					.diff(osc(2, -0.1, () => ${v} * 2 + 3).mask(shape(2,0.02,0).scrollY(0.5)))
+					.out(${o})`,
+				'glass' : (o, v) =>
+					`osc(2, 0.4, 0)
+					.modulateKaleid(shape(() => int(${v} * 4) + 2, 0.2,() => sin(${v} * pi * 9) * 0.5 + 0.5).repeat(3), 6)
+					.colorama(() => cos(${v} * pi * 2) * 0.01 + 7)
+					.out(${o})`,
+				'paint' : (o, v) =>
+					`noise(0.4, 0.05)
+					.colorama(() => ${v} * 0.01 + 6)
+					.hue(() => ${v} * -0.3)
+					.modulate(noise(() => cos(${v} * pi * 2) * 2 + 4))
+					.out(${o})`,
 			}
 			
 			// Generate the new visual code
