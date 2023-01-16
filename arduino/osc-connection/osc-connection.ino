@@ -34,8 +34,9 @@ hd44780_I2Cexp lcd;
 // the device's ID
 char device[] = "/control2";
 
-// Ethernet shield MAC Address A8:61:0A:AE:A8:6D
-byte mac[] = { 0xA8, 0x61, 0x0A, 0xAE, 0xA8, 0x6D };
+// Ethernet shield1 MAC Address A8:61:0A:AE:A8:6D
+// Ethernet shield2 MAC Address A8:61:0A:AE:95:10
+byte mac[] = { 0xA8, 0x61, 0x0A, 0xAE, 0x95, 0x10 };
 
 // the Arduinos IP address
 IPAddress ip(128, 32, 122, 252);
@@ -49,10 +50,11 @@ const unsigned int outPort = 9999;
 int _f = 0;
 int _v = 0;
 int _s = HIGH;
-int thresh = 2;
+int thresh = 1;
+bool changed = true;
 
 // function names for display
-char *functionNames[] = {"noise", "oscillate", "shape", "modulate"};
+char *functionNames[] = {"squiggle", "mosaic", "paint", "glass", "smear"};
 
 // The startup program running once
 // 
@@ -84,54 +86,55 @@ void loop() {
   int f = analogRead(A0);
   int v = analogRead(A1);
   int s = digitalRead(2);
-
-  // character array for address
-  char address[20];
   
-  // threshold to change value to remove noise from potmeter
+  // threshold to change value to remove noise from potentiometer
   // only send message when value changed
   if (abs(f - _f) > thresh){
-    sprintf(address, "%s%s", device, "/function");
-    oscSend(address, f);
+    oscSend("/control2/function", f);
     _f = f;
+    changed = true;
   }
   if (abs(v - _v) > thresh){
-    sprintf(address, "%s%s", device, "/value");
-    oscSend(address, v);
+    oscSend("/control2/value", v);
     _v = v;
+    changed = true;
   }
   if (abs(s - _s) > 0){
-    sprintf(address, "%s%s", device, "/switch");
-    oscSend(address, s);
+    oscSend("/control2/switch", s);
     _s = s;
+    changed = true;
   }
 
   // print all the text on the display and change the LED color
-  displayTextAndLED(_f, _v, _s);
+  // but only if any of the values changed
+  if (changed){
+    displayTextAndLED(_f, _v, _s);
+    changed = false;
+  }
 
   // pause the program to safe cpu load
-  delay(20);
+  delay(50);
 }
 
 // a function that display text and LED color
 void displayTextAndLED(int f, int v, int s){
   // control LED RGB light brightness (0-255 on PWM output)
-  analogWrite(3, (1-s)*255); //red
-  analogWrite(5, v/4); //blue
-  analogWrite(6, f/4); //green
+  analogWrite(3, v/4); //red
+  analogWrite(5, (1-s)*255); //green
+  analogWrite(6, f/4); //blue
 
   // clear the display
   lcd.clear();
   // print the function name on first line
   lcd.setCursor(0, 1);
   lcd.print(" .");
-  lcd.print(functionNames[int(float(f)/1024*4)]);
+  lcd.print(functionNames[int(float(f)/1024*5)]);
   lcd.print("(");
 
   // generate a char array for number displaying
-  char displayNumber[8];
+  char displayNumber[10];
   // convert float value to string with fixed digits
-  dtostrf(float(v)/1022, 8, 6, displayNumber);
+  dtostrf(float(v)/1023, 8, 6, displayNumber);
 
   // print the variable number from the knob as float 0-1
   lcd.setCursor(0, 2);
@@ -169,13 +172,13 @@ void oscSend(char addr[], int val){
 void startScreen(){
   lcd.setCursor(0, 0);
   lcd.print("Abstraction");
-  delay(1000);
+  delay(500);
   
   lcd.setCursor(0, 1);
   lcd.print("  by Timo");
-  delay(1000);
+  delay(500);
   
   lcd.setCursor(0, 3);
   lcd.print("         starting...");
-  delay(1500);
+  delay(1000);
 }

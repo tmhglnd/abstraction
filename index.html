@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <head>
-	<title>ABSTRACTION | by Timo Hoogland</title>
+	<title>ABSTRACTION | by Timo Hoogland | 2023</title>
 
 	<!-- include the amazing hydra-synth by Olivia Jack -->
 	<script src="./node_modules/hydra-synth/dist/hydra-synth.js"></script>
@@ -122,7 +122,6 @@
 						split();
 					}
 				}
-
 				// route incoming messages and change values for code
 				if (msg[0].match(/control1/)){
 					// if the message is comes from controller 1
@@ -154,7 +153,7 @@
 			// Split the visuals into 2 separate screens
 			function split(){
 				solid().add(src(o0).mask(src(o2)).add(
-					src(o1).scale(-1).mask(src(o2).invert(1))
+					src(o1).mask(src(o2).invert(1))
 				)).out(o3);
 
 				// display the code in the editor
@@ -181,16 +180,16 @@
 			}
 
 			// All the different visual code snippets for the installation
-			let codeMap = {
+			let codeSnippets = {
 				'squiggle' : (o, v) => 
 					`gradient(0).hue(0.2)
 					.colorama(() => sin(${v} * pi * 3) * 0.4 + 0.4)
 					.mask(shape(100).scale(() => ${v} * 10 + 2, 0.56))
-					.modulate(noise(2, 0.2), () => cos(${v} * pi * 4) * 2 + 4)
+					.modulate(noise(2, 0.2),() => cos(${v} * pi * 4) * 2 + 4)
 					.out(${o})`,
 				'mosaic' : (o, v) =>
 					`osc(10,0.1,() => ${v} * 1 + 2)
-					.colorama(() => cos(${v} * π * 3) * 0.2 + 0.3)
+					.colorama(() => cos(${v} * pi * 3) * 0.2 + 0.3)
 					.kaleid(4)
 					.modulateScrollX(voronoi(16,1,() => sin(${v} * pi * 2)* 0.4))
 					.out(${o})`,
@@ -202,8 +201,8 @@
 					.out(${o})`,
 				'glass' : (o, v) =>
 					`osc(3,0.5,5)
-					.modulateKaleid(shape(() => int(${v} * 3)+2,0.2,() => sin(${v} * pi * 8) * 0.5 + 0.5).repeat(3), 6)
-					.colorama(()=> cos(${v} * pi * 2) * -0.15 + 0.3)
+					.modulateKaleid(shape(() => int(${v} * 3) + 2, 0.2,() => sin(${v} * pi * 8) * 0.5 + 0.5).repeat(3), 6)
+					.colorama(() => cos(${v} * pi * 2) * -0.15 + 0.3)
 					.out(${o})`,
 				'smear' : (o, v) =>
 					`src(${o})
@@ -216,9 +215,9 @@
 			// Generate the new visual code
 			function visual(ctl, out){
 				// get the code from the list of options
-				let snippets = Object.keys(codeMap);
+				let snippets = Object.keys(codeSnippets);
 				// apply the parameter value
-				let code = codeMap[snippets[ctl.function]](out, 'ctl.value');
+				let code = codeSnippets[snippets[ctl.function]](out, 'ctl.value');
 				// generate the visuals
 				eval(code);
 				// display the code also as text on the screen

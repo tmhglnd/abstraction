@@ -40,6 +40,18 @@
 		"assistshowspatchername" : 0,
 		"boxes" : [ 			{
 				"box" : 				{
+					"id" : "obj-48",
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 75.0, 45.0, 97.0, 22.0 ],
+					"text" : "udpreceive 9999"
+				}
+
+			}
+, 			{
+				"box" : 				{
 					"id" : "obj-35",
 					"maxclass" : "newobj",
 					"numinlets" : 3,
@@ -128,8 +140,8 @@
 					"numinlets" : 1,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 350.5, 390.0, 127.0, 22.0 ],
-					"text" : "expr int($f1 / 5 * 1024)"
+					"patching_rect" : [ 350.5, 390.0, 107.0, 22.0 ],
+					"text" : "expr $f1 / 5 * 1024"
 				}
 
 			}
@@ -447,8 +459,8 @@
 					"numinlets" : 1,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 132.0, 390.0, 127.0, 22.0 ],
-					"text" : "expr int($f1 / 5 * 1024)"
+					"patching_rect" : [ 132.0, 390.0, 107.0, 22.0 ],
+					"text" : "expr $f1 / 5 * 1024"
 				}
 
 			}
@@ -580,14 +592,16 @@
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "", "" ],
-					"patching_rect" : [ 125.5, 630.0, 244.0, 22.0 ],
+					"patching_rect" : [ 125.5, 630.0, 172.0, 22.0 ],
 					"saved_object_attributes" : 					{
-						"autostart" : 1,
+						"autostart" : 0,
 						"defer" : 0,
+						"node_bin_path" : "",
+						"npm_bin_path" : "",
 						"watch" : 1
 					}
 ,
-					"text" : "node.script server.js @watch 1 @autostart 1"
+					"text" : "node.script server.js @watch 1"
 				}
 
 			}
@@ -914,6 +928,13 @@
 				"patchline" : 				{
 					"destination" : [ "obj-58", 0 ],
 					"source" : [ "obj-47", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-36", 0 ],
+					"source" : [ "obj-48", 0 ]
 				}
 
 			}
