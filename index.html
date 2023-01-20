@@ -484,12 +484,6 @@
 				}
 			}
 
-			// `noise(0.4, 0.05)
-			// 		.colorama(() => ${v} * 0.01 + 6)
-			// 		.hue(() => ${v} * -0.3)
-			// 		.modulate(noise(() => cos(${v} * pi * 2) * 2 + 4))
-			// 		.out(${o})`,
-
 			function Paint(out){
 				this.superSaw = Array(3);
 				this.sum = new p5.Gain();
@@ -516,7 +510,7 @@
 				this.filter.freq(1500);
 				this.filter.disconnect();
 				this.reverb.process(this.filter);
-				this.reverb.drywet(0.5);
+				this.reverb.drywet(1);
 				
 				this.value = (v) => {
 					for (i=0; i<this.superSaw.length; i++){
