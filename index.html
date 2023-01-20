@@ -121,14 +121,17 @@
 			// receive messages from the controllers
 			let socket = io();
 
-			let timer = setTimeout(() => p.outputVolume(0, 0.5), 1000);
-
-			socket.on('message', (...msg) => {
+			let timer;
+			function resetTimer(){
 				// reset timer that turns of sound
 				clearTimeout(timer);
-				timer = setTimeout(() => p.outputVolume(0.1, 1), 10000);
+				timer = setTimeout(() => p.outputVolume(0.125, 1), 30000);
 				// turn on volume if controller is touched
-				p.outputVolume(1, 1);
+				p.outputVolume(0.5, 0.5);
+			}
+
+			socket.on('message', (...msg) => {
+				resetTimer();
 
 				// if both controllers' switch is pressed merge the visuals
 				if (msg[0].match(/switch/)){
@@ -278,11 +281,11 @@
 			}
 			
 			let soundSnippets = {
-				'squiggle' : (o) => { return new Squiggle(o) },
-				'mosaic' : (o) => { return new Mosaic(o) },
-				'smear' : (o) => { return new Smear(o) },
-				'glass' : (o) => { console.log('glass sound') },
-				'paint' : (o) => { return new Paint(o) }
+				'squiggle' : (o) => { return new Squiggle(o); },
+				'mosaic' : (o) => { return new Mosaic(o); },
+				'smear' : (o) => { return new Smear(o); },
+				'glass' : (o) => { return new Glass(o); },
+				'paint' : (o) => { return new Paint(o); }
 			}
 
 			function sound(ctl, out){
@@ -311,14 +314,16 @@
 					this.oscBank[i] = new p5.Oscillator(1, 'sine');
 					this.oscBank[i].pan(out);
 					this.oscBank[i].start();
+					this.oscBank[i].amp(0);
+					this.oscBank[i].amp(1, 0.5);
 					this.oscBank[i].disconnect();
-					this.drive.process(this.oscBank[i], 0.001);
+					this.drive.process(this.oscBank[i], 0.0005);
 				}
 				this.reverb.process(this.drive, 5, 5);
 				
 				this.value = (v) => {
 					for (i=0; i<this.oscBank.length; i++){
-					let f = p.midiToFreq( (cos(v * 4 * pi) * -0.5 + 0.5) * (i-1) * 0.3 + 38 + (i * 12))
+					let f = p.midiToFreq( (cos(v * 4 * pi) * -0.5 + 0.5) * (i-1) * 1 + 38 + (i * 12))
 					this.oscBank[i].freq(f, 0.005)
 					}
 					this.reverb.amp(v * 6 + 0.5, 0.01);
@@ -391,7 +396,7 @@
 				this.lfo = new p5.Oscillator('sine');
 				this.lfo.start();
 				this.lfo.freq(1);
-				this.lfo.scale(-1,1,0,1);
+				this.lfo.scale(-1,1,0,0.8);
 				this.lfo.disconnect();
 				
 				this.noise = new p5.Noise('pink');
@@ -418,14 +423,79 @@
 				}
 			}
 
+			function Glass(out){
+				this.osc = new p5.Oscillator(1, 'triangle');
+				this.osc.disconnect();
+				this.osc.start();
+				this.osc.pan(out);
+
+				this.lfo = new p5.Oscillator(0.5, 'triangle');
+				this.lfo.disconnect();
+				this.lfo.start();
+				this.lfo.scale(-1,1,0,1);
+
+				this.osc.amp(this.lfo);
+
+				this.filter = new p5.Filter();
+				this.filter.process(this.osc);
+				this.filter.disconnect();
+
+				this.adsr = new p5.Envelope(0.001, 0, 0.3, 0);
+
+				this.delay = new p5.Delay();
+				this.delay.process(this.filter, 0.3123, 0.5)
+				this.delay.drywet(0.5);
+
+				this.notes = [2,4,5,7,9,11,12,14,16,17,19,21,23,24,26,28,29,31,33,35,36];
+
+				this.detune = 0;
+
+				this.note = (time) => {
+					let note = this.notes[int(rand() * this.notes.length)];
+					let f = p.midiToFreq(note + 48);
+					this.osc.freq(f, 0, time);
+					this.lfo.freq(f * (this.detune + 0.5), 0, time);
+					this.adsr.triggerAttack(this.osc, time);
+				}
+
+				this.loop = new p5.SoundLoop(this.note, 1);
+				this.loop.start();
+
+				this.phrase = [];
+
+				this.value = (v) => {
+					this.detune = v * 0.5;
+					
+					let s =  sin(v * pi * 9) * 0.5 + 0.5;
+					let cf = s * 30 + 60;
+
+					this.loop.interval = (1 - s) * 0.5 + 0.1;
+					this.delay.feedback(s * 0.3 + 0.3);
+					this.filter.freq(p.midiToFreq(cf));
+				}
+
+				this.dispose = () => {
+					this.loop.stop();
+					let nodes = [this.osc, this.filter, this.adsr, this.lfo, this.delay];
+					for (let i=0; i<nodes.length; i++){
+						nodes[i].disconnect();
+						nodes[i].dispose();
+					}
+				}
+			}
+
+			// `noise(0.4, 0.05)
+			// 		.colorama(() => ${v} * 0.01 + 6)
+			// 		.hue(() => ${v} * -0.3)
+			// 		.modulate(noise(() => cos(${v} * pi * 2) * 2 + 4))
+			// 		.out(${o})`,
+
 			function Paint(out){
 				this.superSaw = Array(3);
 				this.sum = new p5.Gain();
-				this.lfo = new p5.Pulse(1, 0.9);
+				this.lfo = new p5.Pulse(1, 0.8);
 				this.filter = new p5.Filter();
 				this.reverb = new p5.Reverb(3, 2);
-				// this.drive = new p5.Distortion();
-				// this.delay = new p5.Delay();
 				
 				this.lfo.start();
 				this.lfo.disconnect();
@@ -433,14 +503,12 @@
 				this.lfo.scale(-1,1,0,1);
 				
 				for (i=0; i<this.superSaw.length; i++){
-					this.superSaw[i] = new p5.Oscillator('sawtooth');
-					this.superSaw[i].freq(60);
+					this.superSaw[i] = new p5.Oscillator(0, 'sawtooth');
 					this.superSaw[i].pan(out);
 					this.superSaw[i].start();
 					this.superSaw[i].disconnect();
 					this.superSaw[i].amp(this.lfo);
 					this.sum.setInput(this.superSaw[i]);
-					// this.drive.process(this.oscBank[i], 0.005);
 				}
 				
 				this.sum.disconnect();
@@ -448,19 +516,19 @@
 				this.filter.freq(1500);
 				this.filter.disconnect();
 				this.reverb.process(this.filter);
-				this.reverb.drywet(0.5)
+				this.reverb.drywet(0.5);
 				
 				this.value = (v) => {
 					for (i=0; i<this.superSaw.length; i++){
-						let freq = p.midiToFreq(50 + ((i-1) * (v * 0.4 + 0.01)));
-						this.superSaw[i].freq(freq, 1);
+						let freq = p.midiToFreq(50 + ((i-1) * (v * 0.5 + 0.01 )));
+						this.superSaw[i].freq(freq, 0.1);
 					}
-					this.filter.freq(p.midiToFreq((1-v) * 30 + 70))
-					this.lfo.freq(sin(pi * 2) * 5);
+					this.filter.freq(p.midiToFreq(cos(v* pi *3) * 15 + 80))
+					this.lfo.freq((cos(v * pi * 2) * 0.5 + 0.5) * 10 + 2);
 				}
 
 				this.dispose = () => {
-					let nodes = [...this.superSaw, this.sum, this.lfo, this.filter, this.reverb];
+					let nodes = [...this.superSaw, this.lfo, this.filter, this.reverb];
 					for (let i=0; i<nodes.length; i++){
 						nodes[i].disconnect();
 						nodes[i].dispose();
