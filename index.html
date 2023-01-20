@@ -9,6 +9,8 @@
 	<!-- include the p5.js library for sound processing -->
 	<script src="./node_modules/p5/lib/p5.js"></script>
 	<script src="./node_modules/p5/lib/addons/p5.sound.js"></script>
+	<!-- include total serialism library for algorithmic composition -->
+	<script src="./node_modules/total-serialism/build/ts.bundle.js"></script>
 
 	<style>
 		@import url('./fonts/UbuntuMono-Regular.ttf');
@@ -88,7 +90,7 @@
 			// create a new hydra instance
 			var hydra = new Hydra({ 
 				canvas: canvas,
-				precision: 'mediump',
+				precision: 'lowp',
 				detectAudio: false,
 			});
 
@@ -125,9 +127,9 @@
 			function resetTimer(){
 				// reset timer that turns of sound
 				clearTimeout(timer);
-				timer = setTimeout(() => p.outputVolume(0.125, 1), 30000);
+				timer = setTimeout(() => p.outputVolume(0.125, 1), 15000);
 				// turn on volume if controller is touched
-				p.outputVolume(0.5, 0.5);
+				p.outputVolume(0.7, 0.5);
 			}
 
 			socket.on('message', (...msg) => {
@@ -214,7 +216,7 @@
 				
 				let modulation = options[random];
 				let modAmount = rand()*4+0.1;
-				let mergeCode = `src(o0).\n${modulation}(src(o1), ${modAmount.toFixed(3)})`;
+				let mergeCode = `src(o0).\n${modulation}(src(o1).scale(-1), ${modAmount.toFixed(3)})`;
 
 				// display the code in the editor
 				displayCode(`${mergeCode}\n.out(o3)`, 'o2');
@@ -302,6 +304,17 @@
 				ctl.sound.value(ctl.value);
 			}
 
+			// Libraries that help for algorithmic composition of music
+			TL = TotalSerialism.Translate;
+			TF = TotalSerialism.Transform;
+			GN = TotalSerialism.Generative;
+			RN = TotalSerialism.Stochastic;
+
+			TL.setRoot('D');
+			// TL.setScale('Dorian');
+			TL.setScale('minor_pentatonic');
+			
+
 			// sound function for the squiggle visual
 			// An oscillator bank of 3 oscillators and using 
 			// some distortion and delay
@@ -342,47 +355,37 @@
 			// An arpeggiating oscillator with delay effect
 			// and changing melodic phrase
 			function Mosaic(out){
-				this.osc = new p5.Oscillator('sine');
+				this.osc = new p5.Oscillator('triangle');
 				this.osc.pan(out);
 				this.osc.disconnect();
 				this.osc.start();
 				
-				this.adsr = new p5.Envelope();
-				this.adsr.setADSR(0.001, 0.2, 0, 0);
-				
-				this.drive = new p5.Distortion();
-				this.drive.process(this.osc, 0.005);
-				this.drive.disconnect();
+				this.adsr = new p5.Envelope(0.001, 1, 0, 0.2);
 				
 				this.delay = new p5.Delay();
-				this.delay.process(this.drive, 0.316, 0.7, 2500);
+				this.delay.process(this.osc, 0.316, 0.7, 2500);
 				this.delay.drywet(0.4);
 				
+				this.phrase = [0];
 				this.note = (time) => {
-					// let i = this.loop.iterations % this.phrase.length;
-					let i = int(Math.random() * this.phrase.length);
-					let note = this.phrase[i] + 48;
-
+					let i = this.loop.iterations % this.phrase.length;
+					let note = this.phrase[i];
 					this.osc.freq(p.midiToFreq(note), 0, time);
 					this.adsr.triggerAttack(this.osc, time);
 				}
-				
-				this.notes = [2,4,5,7,9,11,12,14,16,17,19,21,23,24,26,28,29,31,33,35,36];
-
-				this.phrase = [ 2 ];
 				
 				this.loop = new p5.SoundLoop(this.note, 0.231);
 				this.loop.start();
 				
 				this.value = (v) => {
-					this.phrase = this.notes.slice(0, 3 + v * this.notes.length);
+					this.phrase = TL.toMidi(TL.toScale(GN.cosine(8, v * 5 + 0.5, 25, 0)), 3);
 					this.loop.interval = (1 - v) * 0.05 + 0.231;
 					this.adsr.setADSR(0.001, (cos(v*pi*4)*0.5+0.5) * 0.4 + 0.05, 0, 0);
 				}
 				
 				this.dispose = () => {
 					this.loop.stop();
-					let nodes = [this.osc, this.adsr, this.drive, this.delay];
+					let nodes = [this.osc, this.adsr, this.delay];
 					for (let i=0; i<nodes.length; i++){
 						nodes[i].disconnect();
 						nodes[i].dispose();
@@ -393,25 +396,24 @@
 			// sound function for the smear visual
 			// Filtered pink noise with a Low Frequency Oscillator
 			function Smear(out){
-				this.lfo = new p5.Oscillator('sine');
-				this.lfo.start();
-				this.lfo.freq(1);
-				this.lfo.scale(-1,1,0,0.8);
+				this.lfo = new p5.Oscillator(1, 'sine');
+				this.lfo.scale(-1,1,0,0.9);
 				this.lfo.disconnect();
+				this.lfo.start();
 				
 				this.noise = new p5.Noise('pink');
 				this.noise.pan(out);	
-				this.noise.start();
-				this.noise.amp(this.lfo);
 				this.noise.disconnect();
+				this.noise.amp(this.lfo);
+				this.noise.start();
 				
 				this.filter = new p5.Filter();
 				this.filter.process(this.noise);
 				
 				this.value = (v) => {
 					let f = cos(v * pi * 8) * -0.5 + 0.5;
-					this.lfo.freq(f * 12 + 0.5);
-					this.filter.freq(p.midiToFreq(f * 60 + 72));
+					this.lfo.freq(f * 10 + 0.5);
+					this.filter.freq(p.midiToFreq(f * 55 + 70));
 				}
 				
 				this.dispose = () => {
@@ -423,6 +425,9 @@
 				}
 			}
 
+			// sound function for the Glass visual
+			// Two triangle oscillators that are combined with
+			// amplitude modulation, delay and a melodic phrase
 			function Glass(out){
 				this.osc = new p5.Oscillator(1, 'triangle');
 				this.osc.disconnect();
@@ -440,18 +445,18 @@
 				this.filter.process(this.osc);
 				this.filter.disconnect();
 
-				this.adsr = new p5.Envelope(0.001, 0, 0.3, 0);
+				this.adsr = new p5.Envelope(0.001, 1, 0.4, 0);
 
 				this.delay = new p5.Delay();
 				this.delay.process(this.filter, 0.3123, 0.5)
 				this.delay.drywet(0.5);
 
-				this.notes = [2,4,5,7,9,11,12,14,16,17,19,21,23,24,26,28,29,31,33,35,36];
-
 				this.detune = 0;
 
 				this.note = (time) => {
-					let note = this.notes[int(rand() * this.notes.length)];
+					let i = this.loop.iterations % this.phrase.length;
+					let note = this.phrase[i];
+
 					let f = p.midiToFreq(note + 48);
 					this.osc.freq(f, 0, time);
 					this.lfo.freq(f * (this.detune + 0.5), 0, time);
@@ -464,11 +469,12 @@
 				this.phrase = [];
 
 				this.value = (v) => {
-					this.detune = v * 0.5;
+					this.detune = v * 2;
 					
-					let s =  sin(v * pi * 9) * 0.5 + 0.5;
+					let s = sin(v * pi * 9) * 0.5 + 0.5;
 					let cf = s * 30 + 60;
-
+					this.phrase = TL.toScale(GN.saw(16, s*5, 36, 12));
+					
 					this.loop.interval = (1 - s) * 0.5 + 0.1;
 					this.delay.feedback(s * 0.3 + 0.3);
 					this.filter.freq(p.midiToFreq(cf));
@@ -483,46 +489,61 @@
 					}
 				}
 			}
-
+			
 			function Paint(out){
-				this.superSaw = Array(3);
-				this.sum = new p5.Gain();
-				this.lfo = new p5.Pulse(1, 0.8);
-				this.filter = new p5.Filter();
-				this.reverb = new p5.Reverb(3, 2);
+				this.osc = new p5.Oscillator(65, 'triangle');
+				this.noise = new p5.Noise('pink');
+				this.noise.pan(out);
+				this.noise.disconnect();
+
+				this.drive = new p5.Distortion();
+				this.drive.process(this.noise, 0.05);
+				this.drive.disconnect();
+
+				this.filter = new p5.Filter('lowpass');
+				this.filter.freq(230);
+				this.filter.res(10);
+				this.filter.gain(3);
+				this.filter.process(this.noise);
 				
-				this.lfo.start();
-				this.lfo.disconnect();
-				this.lfo.freq(7);
-				this.lfo.scale(-1,1,0,1);
+				this.adsr = new p5.Envelope(0.001, 1, 0.05, 0);
+				this.noise.amp(this.adsr);
+				this.noise.start();
+				this.osc.amp(this.adsr);
+				this.osc.start();
+
+				this.cutoffs = [0, 360, 240, 3200];
 				
-				for (i=0; i<this.superSaw.length; i++){
-					this.superSaw[i] = new p5.Oscillator(0, 'sawtooth');
-					this.superSaw[i].pan(out);
-					this.superSaw[i].start();
-					this.superSaw[i].disconnect();
-					this.superSaw[i].amp(this.lfo);
-					this.sum.setInput(this.superSaw[i]);
-				}
-				
-				this.sum.disconnect();
-				this.filter.process(this.sum);
-				this.filter.freq(1500);
-				this.filter.disconnect();
-				this.reverb.process(this.filter);
-				this.reverb.drywet(1);
-				
-				this.value = (v) => {
-					for (i=0; i<this.superSaw.length; i++){
-						let freq = p.midiToFreq(50 + ((i-1) * (v * 0.5 + 0.01 )));
-						this.superSaw[i].freq(freq, 0.1);
+				this.trigger = (time) => {
+					let i = this.loop.iterations % this.rhythm.length;
+					let j = this.loop.iterations % this.lengths.length;
+
+					this.adsr.setADSR(0.001, this.lengths[j], 0, 0);
+					if (this.cutoffs[i] < 1){
+						this.adsr.triggerAttack(this.osc, time);
+					} else {
+						this.filter.freq(this.cutoffs[i], time);
+						this.adsr.triggerAttack(this.noise, time);	
 					}
-					this.filter.freq(p.midiToFreq(cos(v* pi *3) * 15 + 80))
-					this.lfo.freq((cos(v * pi * 2) * 0.5 + 0.5) * 10 + 2);
+				}
+
+				this.loop = new p5.SoundLoop(this.trigger, 0.191);
+				this.loop.start();
+
+				this.rhythm = [100];
+				this.lengths = [0.1]
+
+				this.value = (v) => {
+					let s = cos(v * pi * 2) * 0.5 + 0.5;
+					this.loop.interval = s * -0.05 + 0.2;
+
+					this.rhythm = RN.choose(cos(v * pi * 3) * 5 + 3, this.cutoffs);
+					this.lengths = GN.spreadF(v*7+1, 0.001, 0.2);
 				}
 
 				this.dispose = () => {
-					let nodes = [...this.superSaw, this.lfo, this.filter, this.reverb];
+					this.loop.stop();
+					let nodes = [this.noise, this.filter, this.adsr];
 					for (let i=0; i<nodes.length; i++){
 						nodes[i].disconnect();
 						nodes[i].dispose();
