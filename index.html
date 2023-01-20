@@ -120,7 +120,16 @@
 
 			// receive messages from the controllers
 			let socket = io();
+
+			let timer = setTimeout(() => p.outputVolume(0, 0.5), 1000);
+
 			socket.on('message', (...msg) => {
+				// reset timer that turns of sound
+				clearTimeout(timer);
+				timer = setTimeout(() => p.outputVolume(0.1, 1), 10000);
+				// turn on volume if controller is touched
+				p.outputVolume(1, 1);
+
 				// if both controllers' switch is pressed merge the visuals
 				if (msg[0].match(/switch/)){
 					if (msg[0].match(/control1/)){
@@ -267,7 +276,7 @@
 				mark.innerText = text;
 				paragraph.appendChild(mark);
 			}
-
+			
 			let soundSnippets = {
 				'squiggle' : (o) => { return new Squiggle(o) },
 				'mosaic' : (o) => { return new Mosaic(o) },
@@ -378,7 +387,6 @@
 
 			// sound function for the smear visual
 			// Filtered pink noise with a Low Frequency Oscillator
-			// and a little Distortion
 			function Smear(out){
 				this.lfo = new p5.Oscillator('sine');
 				this.lfo.start();
