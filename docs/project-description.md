@@ -17,17 +17,29 @@ linestretch: 1.1
 # hyphenrules: nohyphenation
 ...
 
-# Abstraction
+# `.abstraction()`
 
-door Timo Hoogland, 2022
+door Timo Hoogland, 2023
 
 ## Titel
 
-`abstraction` *(niet definitief, work-in-progress)*
+`.abstraction()`
+
+## Korte versie
+
+*Abstraction* is een interactieve live coding installatie die je mee neemt in de wereld van creative coding, open source systemen en free culture. Een systeem bestaat uit veel lagen (*abstracties*) met verschillende functies die samenwerken. Elke functie kan op zichzelf staan (met een input, transformatie en output), maar door functies te combineren is het mogelijk een output te genereren die complexer is dan de losse delen. Twee bezoekers kunnen samen beeld en geluid *coden* door aan de knoppen te draaien. Het hele systeem van deze installatie is open. Het maakt gebruik van micro-computers zoals een Raspberry Pi en Arduino en is geschreven met JavaScript, HTML en frameworks NodeJS, p5.js en Hydra. Allemaal in het teken om technologie toegankelijk te maken en te democratiseren.
+
+## Lange versie (voor website)
 
 ## Omschrijving
 
-Deze interactieve audiovisuele installatie geeft de bezoeker inzicht in de werkwijze van digitale systemen. Binnen een programma bestaan veel lagen (*abstracties*) met verschillende functies die samenwerken. Elke functie kan op zichzelf staan en heeft een input, een transformatie en een output, maar door functies te koppelen zorg je ervoor dat er een output ontstaat die complexer is dan de losse functies opzich aankunnen. In de installatie kunnen twee bezoekers een eigen functie kiezen door middel van een klein bedieningspaneel en de input van de functie veranderen. De output van deze losse functies is zowel zichtbaar via een projectie als ook hoorbaar, waarbij het beeld en geluid aan elkaar gekoppeld zijn en een gezamenlijke functie krijgen. Zodra de bezoekers verbinding zoeken door elkaar aan te raken zullen zij een nieuwe abstractie vormen en de functies samengevoegd worden tot een groter geheel.
+<!-- Deze interactieve audiovisuele installatie geeft de bezoeker inzicht in de werkwijze van digitale systemen. Binnen een programma bestaan veel lagen (*abstracties*) met verschillende functies die samenwerken. Elke functie kan op zichzelf staan en heeft een input, een transformatie en een output, maar door functies te koppelen zorg je ervoor dat er een output ontstaat die complexer is dan de losse functies opzich aankunnen. In de installatie kunnen twee bezoekers een eigen functie kiezen door middel van een klein bedieningspaneel en de input van de functie veranderen. De output van deze losse functies is zowel zichtbaar via een projectie als ook hoorbaar, waarbij het beeld en geluid aan elkaar gekoppeld zijn en een gezamenlijke functie krijgen. Zodra de bezoekers verbinding zoeken door elkaar aan te raken zullen zij een nieuwe abstractie vormen en de functies samengevoegd worden tot een groter geheel. -->
+
+*Abstraction* is een interactieve live coding installatie die je mee neemt in de wereld van creative coding, open source systemen en free culture. Een systeem bestaat uit veel lagen (*abstracties*) met verschillende functies die samenwerken. Elke functie kan op zichzelf staan en heeft een input, een transformatie en een output, maar door functies te combineren is het mogelijk een output te genereren die complexer is dan de losse onderdelen. Door gebruik te maken van open source *libraries* en *frameworks* kan je als coder eigen systemen ontwikkelen.
+
+In de installatie kunnen twee bezoekers samen beeld en geluid *coden*. Door aan de knoppen te draaien veranderd de code op het scherm. Als de gebruikers samenwerken kunnen ze het geheel complexer maken. 
+
+Het hele systeem van deze installatie is open. Zo draait de installatie op een Raspberry Pi en wordt de electronica aangestuurd met een Arduino, beiden micro-computers ontwikkeld met het doel technologie toegankelijk te maken en te democratiseren. De software is geschreven met Javascript en HTML (de talen van het internet) tot een web applicatie die in Linux OS draait. De installatie is gemaakt met behulp van verschillende frameworks zoals NodeJS, p5.js (een JavaScript creative coding library ontwikkeld door Lauren Lee McCarthy) en Hydra (een live coding visuele synthesizer ontwikkeld door Olivia Jack).
 
 ## Uitleg van de titel
 
