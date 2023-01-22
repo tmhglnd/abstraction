@@ -24,36 +24,50 @@ const server = app.listen(port, () => {
 // connect via socket io
 const io = socket(server);
 
+// initialize all visuals
+let init = {
+	'/control1/function' : 1024/5,
+	'/control2/function' : 1024/5*3,
+	'/control1/value' : Math.random()*1024,
+	'/control2/value' : Math.random()*1024,
+	'/control1/switch' : 1,
+	'/control2/switch' : 1,
+}
+
 // post socket id to max console
 io.sockets.on('connection', function(socket){
 	console.log(`Connected ${socket.id}`);
 
-	// initialize all visuals
-	init = {
-		'/control1/function' : 1024/5,
-		'/control2/function' : 1024/5*3,
-		'/control1/switch' : 1,
-		'/control2/switch' : 1,
-		'/control1/value' : Math.random()*1024,
-		'/control2/value' : Math.random()*1024,
-	}
 	for (i in init){
 		io.emit('message', i, init[i]);
 	}
 });
 
 // require dependency for receiving controller values
-const { Server } = require('node-osc');
+const { Server, Client } = require('node-osc');
 
+// const pd = new Client('127.0.0.1', 8888);
 const oscPort = 9999;
 
 // setup a server to receive OSC messages from controllers
 let osc = new Server(oscPort, '0.0.0.0', () => {
 	console.log(`OSC server listening at port ${oscPort}`);
 	
-	// receive messages and forward to the browser
+	// receive messages and forward
 	osc.on('message', (msg) => {
+		// store the new values as the initials 
+		// for when page gets refreshed
+		if (init[msg[0]]){
+			init[msg[0]] = msg[1];
+		}
+
+		// forward to the browser
 		io.emit('message', ...msg);
+
+		// also send the values to PureData
+		// pd.send(...msg, (err) => {
+		// 	if (err) console.log(err);
+		// });
 	});
 });
 

@@ -7,7 +7,8 @@ headerincludes:
 	- \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,breakanywhere,commandchars=\\\{\}}
 fontsize: 11pt
 geometry: margin=1.5cm
-pagestyle: empty
+# pagestyle: empty
+pagestyle: plain
 papersize: a5
 # fontfamily: Arial
 mainfont: Arial
@@ -26,11 +27,13 @@ linestretch: 1
 
 # `.abstraction()`
 
-door Timo Hoogland, 2023
+## *source code*
+
+### Timo Hoogland, 2023
 
 \newpage
 
-## Introductie
+# Introductie
 
 *Abstraction* is een interactieve live coding installatie die je mee neemt in de wereld van creative coding, open source systemen en free culture. Een systeem bestaat uit veel lagen (*abstracties*) met verschillende functies die samenwerken. Elke functie kan op zichzelf staan en heeft een input, een transformatie en een output, maar door functies te combineren is het mogelijk een output te genereren die complexer is dan de losse onderdelen. Door gebruik te maken van open source *libraries* en *frameworks* kan je als coder eigen systemen ontwikkelen.
 
@@ -38,11 +41,11 @@ In de installatie kunnen twee bezoekers samen beeld en geluid *coden*. Door aan 
 
 Het hele systeem van deze installatie is open. Zo draait de installatie op een Raspberry Pi en wordt de electronica aangestuurd met een Arduino, beiden micro-computers ontwikkeld met het doel technologie toegankelijk te maken en te democratiseren. De software is geschreven met Javascript en HTML (de talen van het internet) tot een web applicatie die in Linux OS draait. De installatie is gemaakt met behulp van verschillende frameworks zoals NodeJS, p5.js (een JavaScript creative coding library ontwikkeld door Lauren Lee McCarthy) en Hydra (een live coding visuele synthesizer ontwikkeld door Olivia Jack).
 
-## Uitleg van de titel
+# Uitleg van de titel
 
 *Abstraction* is een proces van het weglaten van niet-essentiële informatie en vervolgens te generaliseren om daarmee de fundamentele structuren zichtbaar te maken. Abstractie komt van het Latijnse abstráhere (weglaten). Een abstractie verbindt alle onderliggende processen in een groep. De term abstractie vindt haar weg door wetenschap, wiskunde en ook als kunststroming en is een belangrijk onderdeel dat onze intelligentie kenmerkt en ons in staat stelt patronen te zien en verbindingen te leggen.
 
-## Over de kunstenaar
+# Over de kunstenaar
 
 Timo Hoogland is een digitale kunstenaar, live coder, muziek technoloog en docent uit Apeldoorn. Hij maakt live experimentele elektronische muziek met computer code en ontwikkeld daarnaast generatieve audiovisuele composities en installaties. In zijn werk haalt Timo inspiratie uit wiskundige concepten, geometrie, natuurlijke fenomenen en chaotische of deterministische systemen en experimenteert met deze algoritmes om beeld en klanken te creëeren in het digitale domein.
 
@@ -56,7 +59,7 @@ Timo Hoogland is een digitale kunstenaar, live coder, muziek technoloog en docen
 
 <!-- \newpage -->
 
-## Licentie
+# Licentie
 
 De software in dit boekje is gelicenseerd onder de **GNU GPLv3 licentie**: 
 
@@ -301,12 +304,21 @@ De web app is een website waar de installatie in draait. Deze bestaat uit 3 dele
 	<title>ABSTRACTION | by Timo Hoogland | 2023</title>
 
 	<!-- include hydra-synth for visuals -->
-	<script src="./node_modules/hydra-synth/dist/
-				hydra-synth.js"></script>
+	<script src="./node_modules/hydra-synth/dist
+				/hydra-synth.js"></script>
 	<!-- socket.io for communication between browser and device -->
-	<script src="./node_modules/socket.io/client-dist/
-				socket.io.min.js"></script>
-
+	<script src="./node_modules/socket.io/client-dist
+				/socket.io.min.js"></script>
+		<!-- include the p5.js library for sound processing -->
+	<script src="./node_modules/p5/lib
+				/p5.js"></script>
+	<script src="./node_modules/p5/lib/addons
+				/p5.sound.js"></script>
+	<!-- include total serialism library for algorithmic composition -->
+	<script src="./node_modules/total-serialism
+				/build/ts.bundle.js"></script>
+	
+	<!-- add the stylesheet for the layout -->
 	<link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -329,10 +341,7 @@ De web app is een website waar de installatie in draait. Deze bestaat uit 3 dele
 ### filename: `index.js`
 
 ```js
-const pixels = {
-	width: 480,
-	height: 270
-};
+const pixels = { width: 480, height: 270 };
 
 // aliases for JS functions
 let sin = Math.sin;
@@ -350,18 +359,22 @@ canvas.style.height = '100%';
 canvas.style.imageRendering = 'pixelated';
 
 // create a new hydra instance
-var hydra = new Hydra({
+var hydra = new Hydra({ 
 	canvas: canvas,
-	precision: 'mediump',
+	precision: 'lowp',
 	detectAudio: false,
+});
+
+// initialize an instance of p5.js for the sounds
+let p = new p5((p) => {
+	p.setup = () => {
+		p.noCanvas();
+		p.userStartAudio();
+	}
 });
 
 // set resolution for the visuals
 setResolution(pixels.width, pixels.height);
-
-// set tempo and speed
-// bpm = 120;
-// speed = 1;
 
 // initalize solid black screens
 solid().out(o0);
@@ -369,66 +382,94 @@ solid().out(o1);
 render(o3);
 
 // create a mask (split screen in black/white on half width)
-osc(Math.PI * 2, 0).thresh(0.5, 0).out(o2);
-
-// start with split screen
-split();
+osc(Math.PI*2,0).thresh(0.5, 0).out(o2);
 
 // storage for incoming parameters from controller
-let c1 = {
-	value: 0,
-	function: 0,
-	switch: 0
-};
-let c2 = {
-	value: 0,
-	function: 0,
-	switch: 0
-};
+let c1 = { value: 0, function: 0, switch: 0, sound: null };
+let c2 = { value: 0, function: 0, switch: 0, sound: null };
+
+// A timer that lowers the sound when the installation is not used
+let timer;
+function resetTimer(){
+	// reset timer that turns of sound
+	clearTimeout(timer);
+	timer = setTimeout(() => p.outputVolume(0.125, 1), 15000);
+	// turn on volume if controller is touched
+	p.outputVolume(0.7, 0.5);
+}
 
 // receive messages from the controllers
 let socket = io();
+
+// The socket receives all the messages from the controllers
 socket.on('message', (...msg) => {
+	// reset the timer when the controller is used
+	resetTimer();
+
 	// if both controllers' switch is pressed merge the visuals
-	if (msg[0].match(/switch/)) {
-		if (msg[0].match(/control1/)) {
+	if (msg[0].match(/switch/)){
+		if (msg[0].match(/control1/)){
 			c1.switch = !msg[1];
-		} else if (msg[0].match(/control2/)) {
+		} else if (msg[0].match(/control2/)){
 			c2.switch = !msg[1];
 		}
 
-		if (c1.switch && c2.switch) {
+		if (c1.switch && c2.switch){
 			merge();
 		} else {
 			split();
 		}
 	}
 	// route incoming messages and change values for code
-	if (msg[0].match(/control1/)) {
-		// if the message is comes from controller 1
-		if (msg[0].match(/value/)) {
+	if (msg[0].match(/control1/)){
+		// if the message comes from controller 1
+		if (msg[0].match(/value/)){
 			c1.value = msg[1] / 1023;
-		} else if (msg[0].match(/function/)) {
-			c1.function = Math.floor(msg[1] / 1024 * 5);
-			// redraw the visuals with new code to output 0
-			visual(c1, 'o0');
+			if (c1.sound){
+				c1.sound.value(c1.value);
+			}
 		}
-	} else if (msg[0].match(/control2/)) {
+		else if (msg[0].match(/function/)){
+			let f = Math.floor(msg[1] / 1024 * 5);
+			// only change something if the function 
+			// actually changes (not just the knob position)
+			if (f !== c1.function){
+				c1.function = f;
+				// redraw the visuals with new code
+				visual(c1, 'o0');
+				// remake the sound with new code
+				sound(c1, -1);
+			}
+		}
+	}
+	else if (msg[0].match(/control2/)){
 		// if the message comes from controller 2
-		if (msg[0].match(/value/)) {
-			c2.value = msg[1] / 1023;
-		} else if (msg[0].match(/function/)) {
-			c2.function = Math.floor(msg[1] / 1024 * 5);
-			// redraw the visuals with new code to output 1
-			visual(c2, 'o1');
-		} else if (msg[0].match(/switch/)) {
+		if (msg[0].match(/value/)){
+			c2.value = msg[1]/1023;
+			if (c2.sound){
+				c2.sound.value(c2.value);
+			}
+		}
+		else if (msg[0].match(/function/)){
+			let f = Math.floor(msg[1]/1024*5);
+			// only change something if the function 
+			// actually changes (not just the knob position)
+			if (f !== c2.function){
+				c2.function = f;
+				// redraw the visuals with new code
+				visual(c2, 'o1');
+				// remake the sound with new code
+				sound(c2, 1);
+			}
+		}
+		else if (msg[0].match(/switch/)){
 			c2.switch = !msg[1];
 		}
 	}
 });
 
-// Split the visuals into 2 separate screens
-function split() {
+// Split the visuals and sound into 2 separate screens
+function split(){
 	solid().add(src(o0).mask(src(o2)).add(
 		src(o1).scale(-1).mask(src(o2).invert(1))
 	)).out(o3);
@@ -437,20 +478,24 @@ function split() {
 	displayCode(
 		`src(o0).mask(src(o2)).\nadd(src(o1)
 		.mask(src(o2).invert(1)))\n.out(o3)`, 'o2');
+
+	// split the sound so one is left and one is right
+	c1.sound.connect(false);
+	c2.sound.connect(false);
 }
 
-// Merge the visuals by modulating together with random 
+// Merge the visuals and sound by modulating together with random 
 // modulation option and amount every time started
-function merge() {
+function merge(){
 	let options = ['modulate', 'modulateKaleid', 
 				'modulateScrollX', 'modulateRotate', 
 				'modulateScale']
 	let random = int(rand() * options.length);
-
+	
 	let modulation = options[random];
-	let modAmount = rand() * 4 + 0.1;
-	let mergeCode = `src(o0).\n${modulation}(src(o1), 
-					${modAmount.toFixed(3)})`;
+	let modAmount = rand()*4+0.1;
+	let mergeCode = `src(o0).\n${modulation}(src(o1)
+					.scale(-1), ${modAmount.toFixed(3)})`;
 
 	// display the code in the editor
 	displayCode(`${mergeCode}\n.out(o3)`, 'o2');
@@ -458,13 +503,17 @@ function merge() {
 	// evaluate the code and display the merged visuals
 	mergeCode = `solid().add(${mergeCode}).out(o3)`;
 	eval(mergeCode);
+
+	// merge the sounds by playing in both speakers
+	c1.sound.connect(true);
+	c2.sound.connect(true);
 }
 
 // All the different visual code snippets for the installation
 // stored in an object by name and followed by the code
 // ${v} is the variable from the knob
 let codeSnippets = {
-	'squiggle': (o, v) =>
+	'squiggle' : (o, v) => 
 		`gradient(0).pixelate(6,6)
 		.hue(() => 1-(${v} * 0.5 + 0.4))
 		.mask(shape(8).scale( () => ${v} * 10 + 3, 0.56))
@@ -472,26 +521,26 @@ let codeSnippets = {
 		.modulate(noise(1.5, 0.2), 
 			() => cos(${v} * pi * 4) * 4 + 5.5)
 		.out(${o})`,
-	'mosaic': (o, v) =>
+	'mosaic' : (o, v) =>
 		`osc(4,0.1,() => ${v} * 2 + 1.7).kaleid(3)
 		.colorama(() => cos(${v} * pi * 6) * 0.1 + 0.1)  
 		.modulatePixelate(voronoi(8, 0.5, 0), 
 			() => sin(${v} * pi * 4) * 10 + 11)
 		.out(${o})`,
-	'smear': (o, v) =>
+	'smear' : (o, v) =>
 		`src(${o})
 		.modulate(src(${o}).pixelate(6,6), 0.005)
 		.scale(() => sin(${v} * pi * 4) * 0.02 + 1).hue(0.001)
 		.diff(osc(2, -0.1, () => ${v} * 2 + 3)
 			.mask(shape(2,0.02,0).scrollY(0.5)))
 		.out(${o})`,
-	'glass': (o, v) =>
+	'glass' : (o, v) =>
 		`osc(2, 0.4, 0)
 		.modulateKaleid(shape(() => int(${v} * 4) + 2, 0.2,
 			() => sin(${v} * pi * 9) * 0.5 + 0.5).repeat(3), 6)
 		.colorama(() => cos(${v} * pi * 2) * 0.01 + 7)
 		.out(${o})`,
-	'paint': (o, v) =>
+	'paint' : (o, v) =>
 		`noise(0.4, 0.05)
 		.colorama(() => ${v} * 0.01 + 6)
 		.hue(() => ${v} * -0.3)
@@ -500,12 +549,12 @@ let codeSnippets = {
 }
 
 // Generate the new visual code
-function visual(ctl, out) {
+function visual(ctl, out){
 	// get the code from the list of options
 	let snippets = Object.keys(codeSnippets);
 	// apply the parameter value
-	let code = codeSnippets[snippets[ctl.function]](out, 
-				'ctl.value');
+	let code = codeSnippets[snippets[ctl.function]](out,
+											'ctl.value');
 	// generate the visuals
 	eval(code);
 	// display the code also as text on the screen
@@ -513,12 +562,381 @@ function visual(ctl, out) {
 }
 
 // display the code as text on the screen
-function displayCode(text, element) {
+function displayCode(text, element){
 	let paragraph = document.getElementById(element);
 	paragraph.innerHTML = '';
 	let mark = document.createElement('mark');
 	mark.innerText = text;
 	paragraph.appendChild(mark);
+}
+
+// All the different sound snippets for the installation
+// Calls a class that is described below
+// (o) is the output to the speaker
+let soundSnippets = {
+	'squiggle' : (o) => { return new Squiggle(o); },
+	'mosaic' : (o) => { return new Mosaic(o); },
+	'smear' : (o) => { return new Smear(o); },
+	'glass' : (o) => { return new Glass(o); },
+	'paint' : (o) => { return new Paint(o); }
+}
+
+// Generate the new sound code
+function sound(ctl, out){
+	// get the code from the list of options
+	let snippets = Object.keys(soundSnippets);
+
+	if (ctl.sound){
+		// delete the previous sound
+		ctl.sound.dispose();
+	}
+	// generate the sound
+	ctl.sound = soundSnippets[snippets[ctl.function]](out);
+	// set the sound value based on the controller value
+	ctl.sound.value(ctl.value);
+}
+
+// Libraries that help for algorithmic composition of music
+TL = TotalSerialism.Translate;
+TF = TotalSerialism.Transform;
+GN = TotalSerialism.Generative;
+RN = TotalSerialism.Stochastic;
+
+// the root and the scale for the melodic parts
+TL.setRoot('D');
+TL.setScale('minor_pentatonic');
+
+// sound function for the squiggle visual
+// A square oscillator with a modulated bandpass filter
+// and a little delay for the sense of room
+function Squiggle(out){
+	// the base squarewave oscillator
+	this.osc = new p5.Oscillator(1, 'square');
+	this.output = out;
+	this.osc.pan(this.output);
+	this.osc.disconnect();
+	this.osc.start();
+
+	// a Low Frequency Oscillator that modulates the filter
+	this.mod = new p5.Oscillator(1, 'sine');
+	this.mod.disconnect();
+	this.mod.start();
+	
+	// the filter processes the squarewave and is modulated
+	this.filter = new p5.Filter();
+	this.filter.process(this.osc);
+	this.filter.disconnect();
+	this.filter.freq(this.mod.scale(-1, 1, 250, 1000));
+	this.filter.res(20);
+	
+	// the delay processes the total sound
+	this.delay = new p5.Delay();
+	this.delay.process(this.filter, 0.233, 0.6, 2100);
+	this.delay.drywet(0.5);
+
+	// change the following parameters with the knob
+	this.value = (v) => {
+		let s = cos(v * 4 * pi) * -0.5 + 0.5;
+		let f = p.midiToFreq(v * 2 + 38);
+		this.osc.freq(f, 0.05);
+		this.mod.freq(s * 2 + 0.01, 0.05);
+		this.filter.res(s * 15 + 5, 0.05);
+	}
+	
+	// delete all the sounds when not used anymore
+	this.dispose = () => {
+		let nodes = [this.osc, this.mod, this.filter, this.delay];
+		for (let i=0; i<nodes.length; i++){
+			nodes[i].disconnect();
+			nodes[i].dispose();
+		}
+	}
+
+	// if true then pan to both speakers, else split
+	this.connect = (isConnect) => {
+		if (isConnect){
+			this.osc.pan(0);
+		} else {
+			this.osc.pan(this.output);
+		}
+	}
+}
+
+// Sound function for the Mosaic visual
+// An arpeggiating oscillator with delay effect playing a 
+// short melody with changing melodic phrase
+function Mosaic(out){
+	// the base triangle wave oscillator
+	this.osc = new p5.Oscillator('triangle');
+	this.output = out;
+	this.osc.pan(out);
+	this.osc.disconnect();
+	this.osc.start();
+	
+	// the envelope, that makes the sound short
+	this.adsr = new p5.Envelope(0.001, 1, 0, 0.2);
+	
+	// the delay processes the main oscillator
+	this.delay = new p5.Delay();
+	this.delay.process(this.osc, 0.316, 0.7, 2500);
+	this.delay.drywet(0.4);
+	
+	// the phrase is a list of a melody
+	this.phrase = [0];
+
+	// the note sets the frequency and triggers the sound
+	this.note = (time) => {
+		let i = this.loop.iterations % this.phrase.length;
+		let note = this.phrase[i];
+		this.osc.freq(p.midiToFreq(note), 0, time);
+		this.adsr.triggerAttack(this.osc, time);
+	}
+	
+	// this is the main loop that keeps triggering notes
+	this.loop = new p5.SoundLoop(this.note, 0.231);
+	this.loop.start();
+	
+	// change the following parameters with the knob
+	this.value = (v) => {
+		this.phrase = TL.toMidi(TL.toScale(
+					GN.cosine(8, v * 5 + 0.5, 25, 0)), 3);
+		this.loop.interval = (1 - v) * 0.05 + 0.231;
+		this.adsr.setADSR(0.001, (cos(v * pi * 4) * 0.5 + 0.5)
+									 * 0.4 + 0.05, 0, 0);
+	}
+	
+	// delete all the sounds when not used anymore
+	this.dispose = () => {
+		this.loop.stop();
+		let nodes = [this.osc, this.adsr, this.delay];
+		for (let i=0; i<nodes.length; i++){
+			nodes[i].disconnect();
+			nodes[i].dispose();
+		}
+	}
+
+	// if true then pan to both speakers, else split
+	this.connect = (isConnect) => {
+		if (isConnect){
+			this.osc.pan(0);
+		} else {
+			this.osc.pan(this.output);
+		}
+	}
+}
+
+// Sound function for the Smear visual
+// Filtered pink noise modulated with 
+// a Low Frequency Oscillator
+function Smear(out){
+	// the modulation Low Frequency Oscillator
+	this.lfo = new p5.Oscillator(1, 'sine');
+	this.lfo.scale(-1,1,0,0.9);
+	this.lfo.disconnect();
+	this.lfo.start();
+	
+	// the main pink noise sound
+	this.noise = new p5.Noise('pink');
+	this.output = out;
+	this.noise.pan(out);	
+	this.noise.disconnect();
+	this.noise.amp(this.lfo);
+	this.noise.start();
+	
+	// the filter processes the pink noise
+	this.filter = new p5.Filter();
+	this.filter.process(this.noise);
+	
+	// change the following parameters with the knob
+	this.value = (v) => {
+		let f = cos(v * pi * 8) * -0.5 + 0.5;
+		this.lfo.freq(f * 10 + 0.5, 0.05);
+		this.filter.freq(p.midiToFreq(f * 55 + 70), 0.05);
+	}
+	
+	// delete all the sounds when not used anymore
+	this.dispose = () => {
+		let nodes = [this.noise, this.lfo, this.filter];
+		for (let i=0; i<nodes.length; i++){
+			nodes[i].disconnect();
+			nodes[i].dispose();
+		}
+	}
+
+	// if true then pan to both speakers, else split
+	this.connect = (isConnect) => {
+		if (isConnect){
+			this.noise.pan(0);
+		} else {
+			this.noise.pan(this.output);
+		}
+	}
+}
+
+// Sound function for the Glass visual
+// Two triangle oscillators that are combined with
+// amplitude modulation, delay and a melodic phrase
+function Glass(out){
+	// the main triangle wave oscillator
+	this.osc = new p5.Oscillator(1, 'triangle');
+	this.output = out;
+	this.osc.pan(out);
+	this.osc.disconnect();
+	this.osc.start();
+
+	// the modulation triangle oscillator
+	this.mod = new p5.Oscillator(0.5, 'triangle');
+	this.mod.disconnect();
+	this.mod.start();
+	this.mod.scale(-1,1,0,1);
+
+	// the modulater changes the volume of the oscillator
+	this.osc.amp(this.mod);
+
+	// the filter processes the main oscillator
+	this.filter = new p5.Filter();
+	this.filter.process(this.osc);
+	this.filter.disconnect();
+
+	// the envelope triggers the sound
+	this.adsr = new p5.Envelope(0.001, 1, 0.4, 0);
+
+	// the delay processes the filter sound
+	this.delay = new p5.Delay();
+	this.delay.process(this.filter, 0.3123, 0.5)
+	this.delay.drywet(0.5);
+
+	this.detune = 0;
+
+	// the note sets the frequency and triggers the sound
+	this.note = (time) => {
+		let i = this.loop.iterations % this.phrase.length;
+		let note = this.phrase[i];
+
+		let f = p.midiToFreq(note + 48);
+		this.osc.freq(f, 0, time);
+		this.mod.freq(f * (this.detune + 0.5), 0.01, time);
+		this.adsr.triggerAttack(this.osc, time);
+	}
+
+	// this is the main loop that keeps triggering notes
+	this.loop = new p5.SoundLoop(this.note, 1);
+	this.loop.start();
+
+	// the phrase is a list of a melody
+	this.phrase = [];
+
+	// change the following parameters with the knob
+	this.value = (v) => {
+		this.detune = v * 2;
+		
+		let s = sin(v * pi * 9) * 0.5 + 0.5;
+		let cf = s * 30 + 60;
+		this.phrase = TL.toScale(GN.saw(16, s*5, 36, 12));
+		
+		this.loop.interval = (1 - s) * 0.5 + 0.1;
+		this.delay.feedback(s * 0.3 + 0.3);
+		this.filter.freq(p.midiToFreq(cf));
+	}
+
+	// delete all the sounds when not used anymore
+	this.dispose = () => {
+		this.loop.stop();
+		let nodes = [this.osc, this.filter, this.adsr, 
+					this.mod, this.delay];
+		for (let i=0; i<nodes.length; i++){
+			nodes[i].disconnect();
+			nodes[i].dispose();
+		}
+	}
+
+	// if true then pan to both speakers, else split
+	this.connect = (isConnect) => {
+		if (isConnect){
+			this.osc.pan(0);
+		} else {
+			this.osc.pan(this.output);
+		}
+	}
+}
+
+// Sound function for the Paint visual
+// A triangle and pink noise oscillator are used as percussive
+// sounds by triggering short portions and using a filter
+function Paint(out){
+	// the triangle wave oscillator
+	this.osc = new p5.Oscillator(73, 'triangle');
+	this.output = out;
+	this.osc.pan(out);
+	// the pink noise generator 
+	this.noise = new p5.Noise('pink');
+	this.noise.pan(out);
+	this.noise.disconnect();
+
+	// the filter processes the distorted noise
+	this.filter = new p5.Filter('lowpass');
+	this.filter.freq(230);
+	this.filter.res(10);
+	this.filter.gain(3);
+	this.filter.process(this.noise);
+	
+	// the envelope triggers short portions of the sounds
+	this.adsr = new p5.Envelope(0.001, 1, 0.05, 0);
+	this.noise.amp(this.adsr);
+	this.noise.start();
+	this.osc.amp(this.adsr);
+	this.osc.start();
+
+	this.cutoffs = [ 0, 360, 240, 3200 ];
+	
+	// the note sets the frequency and triggers the sound
+	this.trigger = (time) => {
+		let i = this.loop.iterations % this.rhythm.length;
+		let j = this.loop.iterations % this.lengths.length;
+
+		this.adsr.setADSR(0.001, this.lengths[j], 0, 0);
+		if (this.cutoffs[i] < 1){
+			this.adsr.triggerAttack(this.osc, time);
+		} else {
+			this.filter.freq(this.cutoffs[i], time);
+			this.adsr.triggerAttack(this.noise, time);	
+		}
+	}
+
+	// this is the main loop that keeps triggering notes
+	this.loop = new p5.SoundLoop(this.trigger, 0.191);
+	this.loop.start();
+
+	this.rhythm = [ 100 ];
+	this.lengths = [ 0.1 ]
+
+	// change the following parameters with the knob
+	this.value = (v) => {
+		let s = cos(v * pi * 2) * 0.5 + 0.5;
+		this.loop.interval = s * -0.05 + 0.2;
+
+		this.rhythm = RN.choose(cos(v*pi*3)*5+3, this.cutoffs);
+		this.lengths = GN.spreadF(v*7+1, 0.001, 0.2);
+	}
+
+	// delete all the sounds when not used anymore
+	this.dispose = () => {
+		this.loop.stop();
+		let nodes = [this.noise, this.filter, this.adsr];
+		for (let i=0; i<nodes.length; i++){
+			nodes[i].disconnect();
+			nodes[i].dispose();
+		}
+	}
+
+	// if true then pan to both speakers, else split
+	this.connect = (isConnect) => {
+		if (isConnect){
+			this.noise.pan(0);
+		} else {
+			this.noise.pan(this.output);
+		}
+	}
 }
 ```
 

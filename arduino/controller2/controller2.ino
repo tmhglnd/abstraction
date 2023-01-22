@@ -52,7 +52,7 @@ const unsigned int outPort = 9999;
 int _f = 0;
 int _v = 0;
 int _s = HIGH;
-int thresh = 1;
+int thresh = 2;
 bool changed = true;
 
 // function names for display
