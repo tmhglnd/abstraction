@@ -2,6 +2,8 @@
 
 An installation demonstrating functions, layers of abstraction and live coding through interaction with code.
 
+![](./images/img1.JPG)
+
 # Install
 
 This installation runs in the browser via a localhost NodeJS server. First install node modules:
