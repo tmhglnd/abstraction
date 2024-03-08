@@ -46,7 +46,7 @@ This should return: `nvm`
 
 Now install the latest stable NodeJS version (or any other version) with:
 
-`node install stable` or `node install vX.Y.Z` (eg. `v18.11.0`)
+`nvm install stable` or `nvm install vX.Y.Z` (eg. `v18.11.0`)
 
 Now check the used version with:
 
