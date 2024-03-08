@@ -100,6 +100,26 @@ Then run the following command to hide the cursor after 1 second
 
 `unclutter -idle 1`
 
+## Extend with an RPi Screen
+
+You can combine the installation with a little RPi LCD screen to create a version that can run standalone in the living room as a kind of generative picture frame. For example use the [`3.5 inch RPi LCD Screen`](https://www.waveshare.com/3.5inch-rpi-lcd-c.htm)
+
+`git clone https://github.com/waveshare/LCD-show.git`
+
+Then navigate to the folder
+
+`cd LCD-show`
+
+Modify the file `LCD35-show` to add executable permission and execute
+
+`chmod +x LCD35-show`
+
+`./LCD35-show` (of if you have `C` model for example: `./LCD35C-show`)
+
+Set the correct resolution via the Preferences > Configuration of the RPi. If you do an `apt-get upgrade` on the RPi make sure to add this line to the `config.txt`
+
+`dtoverlay=ads7846`
+
 # Acknowledgements
 
 This installation was commissioned by [Museum CODA](https://www.coda-apeldoorn.nl/) in Apeldoorn, The Netherlands.
